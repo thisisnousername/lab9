@@ -6,21 +6,20 @@
 //---------------------------------------
 using namespace std;
 //---------------------------------------
-void writeToFile(const double* const u, const string s, const double dx,
-                 const double xmin, const int N);
-void initialize(double* const u, const double dx, const double xmin,
-                const int N);
+void writeToFile(const double* const u, const string s, const double dx, const double xmin, const int N);
+void initialize(double* const u, const double dx, const double xmin, const int N);
+void step(const double* const u0, double* const u1, const double dx, const double dt, const double V, const int N);
 //---------------------------------------
 int main(){
 
-  const double tEnd = ;
-  const double V = ;
+  const double tEnd = 5.0;
+  const double V = 1.0;
 
-  const int N  = ;
-  const double xmin = -10;
-  const double xmax =  10;
-  const double dx = (xmax-xmin)/(N-1);
-  double dt = ;
+  const int N  = 256;
+  const double xmin = -10.0;
+  const double xmax =  10.0;
+  const double dx = (xmax-xmin)/(N-1.0);
+  double dt = 0.1*dx/V;
   const int Na = 10; // Number of output files up to tEnd
   const int Nk = int(tEnd/Na/dt);
 
@@ -37,11 +36,8 @@ int main(){
   for(int i=1; i<=Na; i++)
   {
    for(int j=0; j<Nk; j++){
-
-      // Put call to step function here
-
-      // swap arrays u0 <-> u1,
-      // however do not copy values, be more clever ;)
+	step(u0, u1, dx, dt, V, N);
+	h=u0; u0=u1; u1=h;
    }
    strm.str("");
    strm << "u_" << i;
@@ -54,7 +50,12 @@ int main(){
   return 0;
 }
 //-----------------------------------------------
-
+void step(const double* const u0, double* const u1, const double dx, const double dt, const double V, const int N){
+	u1[0] = 0;
+	//for(int i=1; i<N; i++) u1[i] = -V*dt*(u0[i]-u0[i-1])/dx+u0[i];		//upwind
+	for(int i=1; i<N-1; i++) u1[i] = -(V*dt)/(2.0*dx)*(u0[i+1]-u0[i-1])+u0[i];	//FTCS
+	u1[N-1] = 0;									//FTCS letzter Wert
+}
 //-----------------------------------------------
 void initialize(double* const u, const double dx, const double xmin,
                 const int N)
